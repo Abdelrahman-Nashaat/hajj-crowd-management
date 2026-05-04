@@ -1,0 +1,25 @@
+# Virtual environment
+venv/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# AI tool artifacts (not part of the project)
+.claude/
+CLAUDE.md
+.claude.json
+.anthropic/
