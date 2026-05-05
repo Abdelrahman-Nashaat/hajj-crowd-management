@@ -1,485 +1,953 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hajj Crowd Management System — Presentation</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hajj Crowd Management System</title>
+<style>
+/* ============================================================
+   RESET & CUSTOM PROPERTIES
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: #1a365d;
-      overflow: hidden;
-      height: 100vh;
-      width: 100vw;
-    }
+:root {
+  --bg-primary:   #F8FAFC;
+  --bg-card:      #FFFFFF;
+  --accent-dark:  #1E3A5F;
+  --accent-mid:   #3B7BB8;
+  --accent-light: #A8D0E6;
+  --border:       #E2E8F0;
+  --text-body:    #1F2937;
+  --text-muted:   #64748B;
+  --text-alert:   #9B2C2C;
+}
 
-    /* ── Deck ──────────────────────────────────────────────── */
-    .deck { position: relative; width: 100vw; height: 100vh; }
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--bg-primary);
+  font-family: 'Segoe UI', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--text-body);
+}
 
-    /* ── Individual slide ──────────────────────────────────── */
-    .slide {
-      position: absolute; top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: #fff;
-      display: flex; flex-direction: column;
-      padding: 44px 80px 52px;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.35s ease;
-    }
-    .slide.active { opacity: 1; pointer-events: auto; }
+/* ============================================================
+   SLIDE BASE — all slides stacked absolutely, fading in/out
+   ============================================================ */
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 70px 80px 60px;
+  background: var(--bg-primary);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease-in-out;
+}
 
-    /* ── Bottom bar (persistent) ───────────────────────────── */
-    #bar {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
-      background: #1a365d;
-      color: rgba(255,255,255,.65);
-      display: flex; align-items: center;
-      justify-content: space-between;
-      padding: 5px 22px;
-      font-size: 12px;
-    }
-    #bar .bar-nav { display: flex; align-items: center; gap: 10px; }
-    .nav-btn {
-      background: rgba(255,255,255,.15);
-      border: 1px solid rgba(255,255,255,.3);
-      color: #fff; padding: 3px 13px;
-      cursor: pointer; border-radius: 4px; font-size: 14px;
-    }
-    .nav-btn:hover { background: rgba(255,255,255,.3); }
-    #counter { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.9); }
+.slide.active {
+  opacity: 1;
+  pointer-events: auto;
+}
 
-    /* ── Typography ────────────────────────────────────────── */
-    .slide-title {
-      color: #1a365d; font-size: 38px; font-weight: 800;
-      border-bottom: 3px solid #2E86AB;
-      padding-bottom: 12px; margin-bottom: 24px;
-      flex-shrink: 0;
-    }
-    p, li { color: #2d3748; }
+/* ============================================================
+   ACCENT LINE — top-left motif on every slide
+   ============================================================ */
+.accent-line {
+  position: absolute;
+  top: 32px;
+  left: 80px;
+  width: 80px;
+  height: 2px;
+  background: var(--accent-mid);
+}
 
-    /* ── Centered layout (title / thank-you slides) ─────────── */
-    .center-wrap {
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
-      text-align: center; flex: 1;
-    }
-    .big-emoji { font-size: 76px; margin-bottom: 18px; }
-    .hero-title { font-size: 50px; color: #1a365d; font-weight: 800; line-height: 1.18; }
-    .hero-sub   { font-size: 26px; color: #2E86AB; margin-top: 14px; }
-    .meta       { font-size: 19px; color: #718096; margin-top: 36px; line-height: 1.85; }
-    .hint       { font-size: 14px; color: #a0aec0; margin-top: 28px; }
+/* ============================================================
+   BOTTOM BAR
+   ============================================================ */
+.bottom-bar {
+  position: absolute;
+  bottom: 22px;
+  left: 80px;
+  right: 80px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-    /* ── Stat cards (Slide 2) ──────────────────────────────── */
-    .stat-row { display: flex; gap: 22px; margin: 16px 0 24px; flex-shrink: 0; }
-    .stat-card {
-      flex: 1; background: #2E86AB; color: #fff;
-      border-radius: 14px; padding: 26px 16px; text-align: center;
-    }
-    .stat-card .num { font-size: 50px; font-weight: 800; line-height: 1; }
-    .stat-card .lbl { font-size: 16px; margin-top: 8px; opacity: .9; }
+.tagline {
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
 
-    /* ── Tables ────────────────────────────────────────────── */
-    table   { width: 100%; border-collapse: collapse; font-size: 20px; }
-    thead th {
-      background: #1a365d; color: #fff;
-      padding: 12px 18px; text-align: left; font-size: 19px;
-    }
-    tbody td   { padding: 11px 18px; border-bottom: 1px solid #e2e8f0; color: #2d3748; }
-    tbody tr:nth-child(even) td { background: #f7fafc; }
-    td.red { color: #c53030; font-weight: 700; }
+.slide-counter {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
 
-    /* ── Two-column layout ─────────────────────────────────── */
-    .two-col { display: flex; gap: 42px; align-items: flex-start; flex: 1; min-height: 0; }
-    .col     { flex: 1; }
-    .col-img { flex: 1.2; display: flex; align-items: center; justify-content: center; }
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+.eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
 
-    /* ── Bullets ───────────────────────────────────────────── */
-    .bullets { list-style: none; font-size: 22px; }
-    .bullets li { padding: 8px 0; line-height: 1.55; }
-    .bullets li::before { content: "► "; color: #2E86AB; font-weight: 700; }
+h1 {
+  font-size: 54px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--accent-dark);
+  line-height: 1.15;
+}
 
-    /* ── Images ────────────────────────────────────────────── */
-    .img-full  {
-      width: 100%; max-height: 68vh;
-      object-fit: contain; margin-top: 6px; flex-shrink: 1;
-    }
-    .img-panel { width: 100%; max-height: 58vh; object-fit: contain; }
+.slide-title {
+  font-size: 38px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--accent-dark);
+  margin-bottom: 32px;
+  align-self: flex-start;
+  line-height: 1.2;
+}
 
-    /* ── Code / formula ────────────────────────────────────── */
-    code {
-      background: #edf2f7; padding: 3px 8px; border-radius: 4px;
-      font-family: 'Courier New', monospace; font-size: 18px;
-    }
-    .pseudo {
-      background: #f7fafc; border-left: 4px solid #2E86AB;
-      padding: 16px 22px; margin: 12px 0;
-      font-family: 'Courier New', monospace;
-      font-size: 17px; line-height: 2.1; color: #2d3748;
-    }
+h3 {
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
 
-    /* ── Info boxes ────────────────────────────────────────── */
-    .note-box {
-      background: #f0fff4; border-left: 4px solid #38a169;
-      border-radius: 0 8px 8px 0;
-      padding: 14px 18px; margin-top: 14px;
-      font-size: 20px; color: #2d3748; line-height: 1.6;
-    }
-    .alert-box {
-      background: #fff5f5; border-left: 4px solid #e53e3e;
-      border-radius: 0 8px 8px 0;
-      padding: 14px 18px; margin-top: 14px;
-      font-size: 20px; color: #2d3748; line-height: 1.6;
-    }
-    .weight-box {
-      background: #ebf8ff; border: 2px solid #2E86AB;
-      border-radius: 10px; padding: 18px 24px;
-      font-size: 24px; font-weight: 700;
-      text-align: center; margin-bottom: 16px; color: #1a365d;
-    }
+p {
+  font-size: 20px;
+  line-height: 1.65;
+  color: var(--text-body);
+}
 
-    /* ── Caption below full images ─────────────────────────── */
-    .result-label {
-      background: #e6fffa; border: 1px solid #38b2ac;
-      border-radius: 8px; padding: 9px 20px; margin-top: 10px;
-      font-size: 20px; font-weight: 600; color: #1a365d;
-      text-align: center; flex-shrink: 0;
-    }
+.caption {
+  font-size: 15px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 14px;
+  text-align: center;
+}
 
-    /* ── Scheduling (Slide 10) ─────────────────────────────── */
-    .sched-goal {
-      background: #fffff0; border: 2px solid #FBC02D;
-      border-radius: 10px; padding: 16px 22px;
-      margin: 10px 0; font-size: 21px; color: #1a365d;
-      font-weight: 600; line-height: 1.7;
-    }
-    .sched-box {
-      border: 2px solid #2E86AB; border-radius: 10px;
-      padding: 16px 22px; margin: 10px 0;
-      font-size: 20px; color: #2d3748; line-height: 1.65;
-    }
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.slide-content {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
 
-    /* ── Key insight (Slide 12) ────────────────────────────── */
-    .highlight-box {
-      background: #fffff0; border: 2px solid #FBC02D;
-      border-radius: 12px; padding: 20px 28px; margin: 12px 0;
-    }
-    .result-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 11px 18px; border-radius: 8px; margin: 7px 0;
-      font-size: 23px; font-weight: 600;
-    }
-    .r-fcfs   { background: #fed7d7; }
-    .r-greedy { background: #feebc8; }
-    .r-dp     { background: #c6f6d5; }
-    .r-val    { color: #1a365d; font-size: 27px; }
-    .r-lbl    { color: #1a365d; }
-    .key-lesson {
-      font-size: 20px; font-weight: 600; color: #1a365d;
-      background: #FBC02D; border-radius: 10px;
-      padding: 16px 22px; margin-top: 14px; line-height: 1.65;
-    }
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  width: 100%;
+  align-items: start;
+}
 
-    /* ── Intro paragraph ───────────────────────────────────── */
-    .intro-para { font-size: 22px; line-height: 1.7; color: #2d3748; margin-top: 6px; }
-    .caption    { font-size: 19px; font-style: italic; color: #555; margin-top: 20px; }
-  </style>
+.two-col-40-60 { grid-template-columns: 2fr 3fr; }
+
+.three-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
+}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 26px 28px;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-mid);
+  margin-bottom: 8px;
+}
+
+.card-heading {
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--accent-dark);
+  margin-bottom: 10px;
+  line-height: 1.25;
+}
+
+.card-body {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--text-body);
+  flex: 1;
+}
+
+.card-footer {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 14px;
+  font-style: italic;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* ============================================================
+   FIGURE PANELS
+   ============================================================ */
+.fig-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fig-panel img {
+  max-height: 58vh;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 4px;
+}
+
+.fig-panel-wide img {
+  max-height: 52vh;
+}
+
+/* ============================================================
+   COLUMN TEXT BLOCKS (used in 2-col algorithm slides)
+   ============================================================ */
+.col-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-mid);
+  margin-bottom: 5px;
+  margin-top: 18px;
+}
+
+.col-label:first-child { margin-top: 0; }
+
+.col-text {
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
+/* ============================================================
+   SLIDE 1 — COVER
+   ============================================================ */
+.cover-wrap {
+  text-align: center;
+  max-width: 820px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cover-wrap h1 { margin: 18px 0 14px; }
+
+.cover-subtitle {
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+}
+
+.cover-quote {
+  font-size: 18px;
+  font-style: italic;
+  color: var(--text-muted);
+  border-left: 2px solid var(--accent-mid);
+  padding: 4px 0 4px 16px;
+  text-align: left;
+  max-width: 460px;
+  margin-bottom: 32px;
+}
+
+.cover-footer {
+  font-size: 15px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   SLIDE 2 — STAT CARDS
+   ============================================================ */
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 26px;
+  margin-bottom: 14px;
+}
+
+.stat-value {
+  font-size: 42px;
+  font-weight: 600;
+  color: var(--accent-dark);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ============================================================
+   SLIDE 3 — TABLE
+   ============================================================ */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 20px;
+  max-width: 680px;
+  margin: 0 auto 0;
+}
+
+.data-table th {
+  background: var(--accent-dark);
+  color: #fff;
+  padding: 14px 22px;
+  font-weight: 600;
+  text-align: left;
+  font-size: 17px;
+  letter-spacing: 0.02em;
+}
+
+.data-table td {
+  padding: 13px 22px;
+  border: 1px solid var(--border);
+  color: var(--text-body);
+}
+
+.alert-line {
+  font-size: 20px;
+  color: var(--text-alert);
+  margin-top: 26px;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ============================================================
+   SLIDE 4 — QUESTION ROWS
+   ============================================================ */
+.question-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 20px;
+  align-items: baseline;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.question-row:first-child { padding-top: 0; }
+.question-row:last-child  { border-bottom: none; }
+
+.q-bold {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent-dark);
+}
+
+.q-desc {
+  font-size: 19px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ============================================================
+   SLIDE 8 — FORMULA
+   ============================================================ */
+.formula-panel {
+  display: inline-block;
+  background: var(--accent-light);
+  border: 1px solid #7bb3d1;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 19px;
+  color: var(--accent-dark);
+  margin: 10px 0 12px;
+}
+
+/* ============================================================
+   SLIDE 9 — STAT ROW
+   ============================================================ */
+.stat-row {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 26px 0;
+}
+
+.stat-row-item {
+  flex: 1;
+  padding: 18px 16px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.stat-row-item:last-child { border-right: none; }
+
+.stat-row-value {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--accent-dark);
+  line-height: 1;
+}
+
+.stat-row-label {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 5px;
+}
+
+/* ============================================================
+   SLIDE 12 — FOCAL PANEL
+   ============================================================ */
+.focal-panel {
+  background: var(--accent-light);
+  border-radius: 16px;
+  padding: 44px 56px;
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 28px;
+}
+
+.cost-line {
+  font-size: 28px;
+  color: var(--accent-dark);
+  line-height: 1.7;
+}
+
+.cost-line.dp {
+  font-weight: 600;
+  font-size: 30px;
+}
+
+.key-finding {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--accent-dark);
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #7bb3d1;
+}
+
+.subtext {
+  font-size: 17px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  max-width: 700px;
+  text-align: center;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   SLIDE 14 — CLOSING
+   ============================================================ */
+.closing-quote {
+  font-size: 30px;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent-dark);
+  line-height: 1.55;
+  text-align: center;
+  max-width: 680px;
+  margin-bottom: 32px;
+  list-style: none;
+}
+
+/* ============================================================
+   PRINT — one slide per page
+   ============================================================ */
+@media print {
+  .slide {
+    position: relative !important;
+    page-break-after: always;
+    height: 100vh;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+}
+</style>
 </head>
 <body>
-<div class="deck">
 
-  <!-- ══ Slide 1 — Title ══════════════════════════════════════════════ -->
-  <div class="slide active" id="s1">
-    <div class="center-wrap">
-      <div class="big-emoji">🕋</div>
-      <h1 class="hero-title">Hajj Crowd Management System</h1>
-      <p class="hero-sub">Algorithmic Optimization of Pilgrim Flow</p>
-      <div class="meta">
-        Algorithm Design &amp; Analysis — Final Project<br>
-        Faculty of Engineering, Tanta University<br>
-        <strong>[Your Name]</strong>
+<!-- ============================================================
+     SLIDE 01 — Cover
+     ============================================================ -->
+<section class="slide active" id="s1">
+  <div class="accent-line"></div>
+  <div class="cover-wrap">
+    <div class="eyebrow">Algorithm Design &amp; Analysis</div>
+    <h1>Hajj Crowd Management System</h1>
+    <p class="cover-subtitle">Optimizing Pilgrim Flow Through Algorithmic Modeling</p>
+    <div class="cover-quote">Where engineering serves a sacred duty</div>
+    <p class="cover-footer">Tanta University &nbsp;&middot;&nbsp; Faculty of Engineering &nbsp;&middot;&nbsp; Final Year Project</p>
+  </div>
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System</span>
+    <span class="slide-counter">01 / 15</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 02 — Sacred Context
+     ============================================================ -->
+<section class="slide" id="s2">
+  <div class="accent-line"></div>
+  <div class="slide-content">
+    <div class="slide-title">A Journey of 2.5 Million</div>
+    <div class="two-col" style="align-items:center;">
+      <div>
+        <p>Each year, over 2.5 million Muslims travel to Makkah to perform Hajj — one of the five pillars of Islam. Across five sacred sites, they follow rituals that have remained unchanged for over fourteen centuries.</p>
+        <p style="margin-top:20px;">The schedule is fixed by faith. Every pilgrim group must visit each site at the prescribed time. There is no rescheduling, no flexibility in the calendar — only in the engineering of movement.</p>
+        <p class="caption" style="text-align:left; margin-top:24px;">The schedule is fixed by faith. Only the engineering of movement can adapt.</p>
       </div>
-      <p class="hint">Use arrow keys or space bar to navigate &nbsp;|&nbsp; F11 for fullscreen</p>
+      <div>
+        <div class="stat-card">
+          <div class="stat-value">2.5M+</div>
+          <div class="stat-label">pilgrims annually</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">5</div>
+          <div class="stat-label">sacred sites visited</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">1,400+</div>
+          <div class="stat-label">years of unchanged ritual</div>
+        </div>
+      </div>
     </div>
   </div>
-
-  <!-- ══ Slide 2 — The Problem ════════════════════════════════════════ -->
-  <div class="slide" id="s2">
-    <h2 class="slide-title">The Problem</h2>
-    <div class="stat-row">
-      <div class="stat-card">
-        <div class="num">2.5M</div>
-        <div class="lbl">pilgrims every year</div>
-      </div>
-      <div class="stat-card">
-        <div class="num">5</div>
-        <div class="lbl">holy sites to visit</div>
-      </div>
-      <div class="stat-card" style="background:#1a365d;">
-        <div class="num" style="font-size:34px;">Fixed</div>
-        <div class="lbl">schedule by Islamic ritual</div>
-      </div>
-    </div>
-    <p class="intro-para">
-      Every Hajj, millions of pilgrims must move between the same five sites at exactly
-      the same times. There is <strong>no flexibility in WHEN</strong> people move — only
-      in <strong>HOW</strong> they move. This creates extreme, predictable congestion —
-      exactly the kind of problem algorithms can address.
-    </p>
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System</span>
+    <span class="slide-counter">02 / 15</span>
   </div>
+</section>
 
-  <!-- ══ Slide 3 — Real-World Impact ════════════════════════════════ -->
-  <div class="slide" id="s3">
-    <h2 class="slide-title">Real-World Impact</h2>
-    <table>
+<!-- ============================================================
+     SLIDE 03 — Cost of Congestion
+     ============================================================ -->
+<section class="slide" id="s3">
+  <div class="accent-line"></div>
+  <div class="slide-content" style="align-items:center; text-align:center;">
+    <div class="slide-title" style="align-self:center;">The Cost of Congestion</div>
+    <p style="font-size:22px; max-width:700px; margin:0 auto 30px;">Throughout history, when too many move through too few paths, tragedy has followed.</p>
+    <table class="data-table">
       <thead>
-        <tr><th>Year</th><th>Event</th><th>Deaths</th></tr>
+        <tr>
+          <th>Year</th>
+          <th>Location</th>
+          <th>Lives Lost</th>
+        </tr>
       </thead>
       <tbody>
-        <tr><td>1990</td><td>Mina Tunnel Stampede</td><td class="red">1,426</td></tr>
-        <tr><td>2006</td><td>Jamarat Bridge Stampede</td><td class="red">346</td></tr>
-        <tr><td>2015</td><td>Mina Stampede</td><td class="red">2,431</td></tr>
+        <tr><td>1990</td><td>Mina Tunnel</td><td>1,426</td></tr>
+        <tr><td>2006</td><td>Jamarat Bridge</td><td>346</td></tr>
+        <tr><td>2015</td><td>Mina</td><td>2,431</td></tr>
       </tbody>
     </table>
-    <p class="caption">
-      These tragedies are <strong>routing and scheduling failures</strong> — not random
-      accidents. Better crowd routing algorithms, applied before the event, could reduce
-      or eliminate such disasters. This is the engineering motivation for our project.
-    </p>
+    <p class="alert-line">Each tragedy was, at its core, a routing failure.</p>
   </div>
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System</span>
+    <span class="slide-counter">03 / 15</span>
+  </div>
+</section>
 
-  <!-- ══ Slide 4 — Our Approach ══════════════════════════════════════ -->
-  <div class="slide" id="s4">
-    <h2 class="slide-title">Modeling Hajj as a Graph</h2>
-    <div class="two-col">
-      <div class="col">
-        <ul class="bullets" style="margin-top:8px;">
-          <li><strong>Nodes</strong> = Holy sites (5 nodes)</li>
-          <li><strong>Edges</strong> = Roads between sites (10 edges)</li>
-          <li><strong>Distance weight</strong> = Road length in km</li>
-          <li><strong>Congestion weight</strong> = distance × (1 + load%)</li>
-          <li><strong>Capacity</strong> = max people/hour per road</li>
-        </ul>
-        <div class="note-box" style="font-size:19px; margin-top:20px;">
-          All distances, capacities, and load values are <em>simulated</em> for academic
-          demonstration — inspired by published Hajj statistics.
-        </div>
+<!-- ============================================================
+     SLIDE 04 — Why Algorithms Matter
+     ============================================================ -->
+<section class="slide" id="s4">
+  <div class="accent-line"></div>
+  <div class="slide-content" style="max-width:860px;">
+    <div class="slide-title">An Engineering Question</div>
+    <p style="font-size:22px; font-weight:600; color:var(--accent-dark); margin-bottom:32px;">If we cannot change WHEN pilgrims must move, we must master HOW.</p>
+    <div class="question-row">
+      <span class="q-bold">Where to build?</span>
+      <span class="q-desc">Infrastructure design — which roads are essential to connect all five sites?</span>
+    </div>
+    <div class="question-row">
+      <span class="q-bold">Which path?</span>
+      <span class="q-desc">Traffic routing — the safest route given current congestion on each road?</span>
+    </div>
+    <div class="question-row">
+      <span class="q-bold">When to depart?</span>
+      <span class="q-desc">Schedule optimization — order groups to minimize total weighted waiting time?</span>
+    </div>
+    <p style="margin-top:32px; color:var(--text-muted); font-size:18px;">Three questions. Three classical algorithm families. One coherent system.</p>
+  </div>
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System</span>
+    <span class="slide-counter">04 / 15</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 05 — Graph Model
+     ============================================================ -->
+<section class="slide" id="s5">
+  <div class="accent-line"></div>
+  <div class="slide-content">
+    <div class="slide-title">Modeling the Sacred Sites</div>
+    <div class="two-col two-col-40-60" style="align-items:center;">
+      <div>
+        <p>Five holy sites become five nodes. Ten roads become ten weighted edges. Each edge carries two values: the physical distance in kilometers, and a congestion-aware weight.</p>
+        <p style="margin-top:18px;">By casting this as a graph, we transform a logistics problem into a mathematical structure with centuries of established theory behind it.</p>
+        <p style="margin-top:18px;">Every algorithm in this project operates directly on this graph. It is the single shared foundation.</p>
+        <p class="caption" style="text-align:left; margin-top:20px;">From sacred geography to mathematical structure.</p>
       </div>
-      <div class="col-img">
-        <img src="../output/fig1_full_graph.png" class="img-panel" alt="Full network graph — 5 nodes, 10 edges">
+      <div class="fig-panel">
+        <img src="../output/fig1_full_graph.png" alt="Full Hajj network graph showing 5 sites and 10 roads">
       </div>
     </div>
   </div>
-
-  <!-- ══ Slide 5 — Algorithms Overview ══════════════════════════════ -->
-  <div class="slide" id="s5">
-    <h2 class="slide-title">Five Algorithm Techniques</h2>
-    <table style="margin-top:10px;">
-      <thead>
-        <tr><th style="width:6%">#</th><th style="width:28%">Algorithm</th><th style="width:42%">Purpose</th><th>Complexity</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>1</td><td>Graph Modeling</td><td>Represent sites and roads</td><td>—</td></tr>
-        <tr><td>2</td><td><strong>Kruskal's MST</strong></td><td>Minimum-cost infrastructure spanning all sites</td><td><code>O(E log E)</code></td></tr>
-        <tr><td>3</td><td><strong>Dijkstra's</strong></td><td>Congestion-aware shortest path</td><td><code>O((V+E) log V)</code></td></tr>
-        <tr><td>4</td><td><strong>Greedy</strong></td><td>Fast urgency-based group scheduling</td><td><code>O(n log n)</code></td></tr>
-        <tr><td>5</td><td><strong>Dynamic Programming</strong></td><td>Optimal group scheduling (bitmask)</td><td><code>O(n × 2ⁿ)</code></td></tr>
-      </tbody>
-    </table>
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System</span>
+    <span class="slide-counter">05 / 15</span>
   </div>
+</section>
 
-  <!-- ══ Slide 6 — Kruskal's Concept ════════════════════════════════ -->
-  <div class="slide" id="s6">
-    <h2 class="slide-title">Kruskal's MST — Minimum Infrastructure</h2>
-    <div class="two-col">
-      <div class="col">
-        <p style="font-size:20px; margin-bottom:10px; color:#1a365d; font-weight:600;">Algorithm steps:</p>
-        <div class="pseudo">
-          1. Sort all edges by distance (ascending)<br>
-          2. Pick the cheapest remaining edge<br>
-          3. If it creates no cycle → add to MST<br>
-          &nbsp;&nbsp;&nbsp;else → reject it<br>
-          4. Repeat until N−1 edges are chosen
-        </div>
-        <p style="font-size:19px; margin-top:12px; color:#2d3748;">
-          Cycle detection uses <strong>Union-Find</strong> with path compression
-          and union-by-rank — giving near-O(1) amortised operations.
-        </p>
+<!-- ============================================================
+     SLIDE 06 — Algorithmic Toolkit
+     ============================================================ -->
+<section class="slide" id="s6">
+  <div class="accent-line"></div>
+  <div class="slide-content">
+    <div class="slide-title">The Algorithmic Toolkit</div>
+    <div class="three-col">
+      <div class="card">
+        <div class="card-tag">Infrastructure</div>
+        <div class="card-heading">Kruskal's MST</div>
+        <div class="card-body">Build the cheapest road network that keeps every site connected — no redundancy, no waste.</div>
+        <div class="card-footer">O(E log E)</div>
       </div>
-      <div class="col">
-        <div class="note-box" style="font-size:21px; margin-top:0;">
-          <strong>Use case:</strong> What is the cheapest set of roads that keeps
-          all 5 holy sites connected? The MST answers this exactly.
-        </div>
-        <div class="alert-box" style="margin-top:14px; font-size:20px;">
-          <strong>Result:</strong> 4 edges chosen from 10 candidates<br>
-          Total MST cost = <strong>21.5 km</strong><br>
-          2 edges rejected (cycle detection)
-        </div>
+      <div class="card">
+        <div class="card-tag">Routing</div>
+        <div class="card-heading">Dijkstra's Shortest Path</div>
+        <div class="card-body">Find the path of minimum real risk through a congested network — distance weighted by load.</div>
+        <div class="card-footer">O((V+E) log V)</div>
+      </div>
+      <div class="card">
+        <div class="card-tag">Scheduling</div>
+        <div class="card-heading">Greedy vs Dynamic Programming</div>
+        <div class="card-body">Compare a fast urgency-first heuristic against an exhaustive optimal search over all orderings.</div>
+        <div class="card-footer">O(n log n) &nbsp;vs&nbsp; O(n &times; 2<sup>n</sup>)</div>
+      </div>
+    </div>
+    <p class="caption" style="margin-top:24px;">Each tool answers a fundamentally different question about the same network.</p>
+  </div>
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System</span>
+    <span class="slide-counter">06 / 15</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 07 — Kruskal's MST
+     ============================================================ -->
+<section class="slide" id="s7">
+  <div class="accent-line"></div>
+  <div class="slide-content">
+    <div class="slide-title">Kruskal's MST — Building the Foundation</div>
+    <div class="two-col two-col-40-60" style="align-items:start;">
+      <div>
+        <div class="col-label">The Question</div>
+        <p class="col-text">Which roads must we build so that every site remains reachable, at minimum total cost?</p>
+        <div class="col-label">The Answer</div>
+        <p class="col-text">A Minimum Spanning Tree connects every node using exactly N&minus;1 edges, with no redundancy and no cycles. It is the cheapest possible connected network.</p>
+        <div class="col-label">Why Kruskal?</div>
+        <p class="col-text">Kruskal's provides clear visual reasoning: always select the cheapest available road that does not form a cycle. This maps intuitively to infrastructure planning — build only what is necessary.</p>
+        <p class="caption" style="text-align:left; margin-top:18px;">Result: 4 essential roads, total length 21.5 km.</p>
+      </div>
+      <div class="fig-panel">
+        <img src="../output/fig2_kruskal_steps.png" alt="Kruskal MST construction — 4 steps">
       </div>
     </div>
   </div>
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System</span>
+    <span class="slide-counter">07 / 15</span>
+  </div>
+</section>
 
-  <!-- ══ Slide 7 — Kruskal's Result ══════════════════════════════════ -->
-  <div class="slide" id="s7">
-    <h2 class="slide-title">Kruskal's MST — Step-by-Step</h2>
-    <img src="../output/fig2_kruskal_steps.png" class="img-full" alt="Kruskal 4-panel step-by-step">
-    <div class="result-label">
-      4 MST edges (green) &nbsp;|&nbsp; 2 cycle rejections (red dashed) &nbsp;|&nbsp; Total cost: 21.5 km
+<!-- ============================================================
+     SLIDE 08 — Dijkstra's
+     ============================================================ -->
+<section class="slide" id="s8">
+  <div class="accent-line"></div>
+  <div class="slide-content">
+    <div class="slide-title">Dijkstra's — Routing Under Pressure</div>
+    <div class="two-col two-col-40-60" style="align-items:start;">
+      <div>
+        <div class="col-label">The Question</div>
+        <p class="col-text">When pilgrims travel between sites, which path carries the least real risk?</p>
+        <div class="col-label">The Insight</div>
+        <p class="col-text">The shortest road is not always the safest. A 1-km tunnel at 95% capacity is more dangerous than a 3-km open route. Edge weights must encode congestion, not just distance.</p>
+        <div class="col-label">The Formula</div>
+        <div class="formula-panel">weight = distance &times; (1 + load%)</div>
+        <p class="col-text">Dijkstra's algorithm then guarantees the globally optimal path — a priority queue always expands the cheapest frontier first, visiting each node exactly once.</p>
+        <p class="caption" style="text-align:left; margin-top:16px;">Mina to Jamarat: 1.5 km, congestion weight 2.85.</p>
+      </div>
+      <div class="fig-panel">
+        <img src="../output/fig3_dijkstra_steps.png" alt="Dijkstra shortest path — 3 steps">
+      </div>
     </div>
   </div>
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System</span>
+    <span class="slide-counter">08 / 15</span>
+  </div>
+</section>
 
-  <!-- ══ Slide 8 — Dijkstra's Concept ════════════════════════════════ -->
-  <div class="slide" id="s8">
-    <h2 class="slide-title">Dijkstra's — Congestion-Aware Routing</h2>
-    <div class="two-col">
-      <div class="col">
-        <div class="weight-box">edge weight = distance × (1 + load / 100)</div>
-        <div class="pseudo">
-          1. dist[source] = 0 &nbsp;; all others = ∞<br>
-          2. Push source onto min-heap<br>
-          3. Pop node u with smallest dist<br>
-          4. For each neighbour v (unvisited):<br>
-          &nbsp;&nbsp;if dist[u] + w(u,v) &lt; dist[v]:<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;relax dist[v], update prev[v]<br>
-          5. Stop when target is settled
+<!-- ============================================================
+     SLIDE 09 — Scheduling Problem
+     ============================================================ -->
+<section class="slide" id="s9">
+  <div class="accent-line"></div>
+  <div class="slide-content" style="align-items:center; max-width:860px; margin:0 auto;">
+    <div class="slide-title" style="align-self:center; text-align:center;">Ten Groups. One Bottleneck. Lives at Stake.</div>
+    <p style="text-align:center;">On the day of departure from Mina, ten major pilgrim groups must cross the same critical bottleneck road — one at a time. Each group differs in size, urgency, and the time it requires.</p>
+    <p style="margin-top:18px; text-align:center;">The order matters profoundly. Process the wrong group first and elderly or medically vulnerable pilgrims wait dangerously long. Optimize by urgency alone and the total waiting cost may still be far from minimal.</p>
+    <div class="stat-row" style="margin-top:28px;">
+      <div class="stat-row-item">
+        <div class="stat-row-value">10</div>
+        <div class="stat-row-label">pilgrim groups</div>
+      </div>
+      <div class="stat-row-item">
+        <div class="stat-row-value">1 – 5</div>
+        <div class="stat-row-label">urgency levels</div>
+      </div>
+      <div class="stat-row-item">
+        <div class="stat-row-value">Variable</div>
+        <div class="stat-row-label">processing time</div>
+      </div>
+      <div class="stat-row-item">
+        <div class="stat-row-value">Single</div>
+        <div class="stat-row-label">shared bottleneck</div>
+      </div>
+    </div>
+    <p style="font-size:18px; font-style:italic; color:var(--text-muted); text-align:center;">How do we decide the order?</p>
+  </div>
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System</span>
+    <span class="slide-counter">09 / 15</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 10 — Three Strategies
+     ============================================================ -->
+<section class="slide" id="s10">
+  <div class="accent-line"></div>
+  <div class="slide-content">
+    <div class="slide-title">Three Ways to Decide the Order</div>
+    <div class="three-col">
+      <div class="card">
+        <div class="card-tag">Baseline</div>
+        <div class="card-heading">FCFS</div>
+        <div class="card-body">
+          <em style="display:block; margin-bottom:8px; color:var(--text-muted);">First Come, First Served</em>
+          The naive baseline. Simple. Fair-feeling. Groups are processed in arrival order with no consideration of urgency or cost.
         </div>
+        <div class="card-footer">No optimization reasoning applied.</div>
       </div>
-      <div class="col">
-        <div class="note-box" style="font-size:21px; margin-top:0;">
-          <strong>Why congestion-aware?</strong> A road at 90% load is penalised more
-          than a longer but emptier road. The algorithm naturally reroutes pilgrims
-          away from dangerous bottlenecks.
+      <div class="card">
+        <div class="card-tag">Heuristic</div>
+        <div class="card-heading">Greedy</div>
+        <div class="card-body">
+          <em style="display:block; margin-bottom:8px; color:var(--text-muted);">Highest urgency first</em>
+          Fast and intuitive. Ensures critical groups are processed early. Achieves a large improvement over FCFS in O(n log n) time.
         </div>
-        <div class="alert-box" style="margin-top:14px; font-size:20px;">
-          <strong>Route tested:</strong> Mina → Jamarat<br>
-          The Jamarat road has the highest historical death toll — it is the
-          most critical bottleneck in the entire Hajj network.
+        <div class="card-footer">Clever — but not always the correct answer.</div>
+      </div>
+      <div class="card">
+        <div class="card-tag">Optimal</div>
+        <div class="card-heading">Dynamic Programming</div>
+        <div class="card-body">
+          <em style="display:block; margin-bottom:8px; color:var(--text-muted);">Bitmask DP over all subsets</em>
+          Evaluates all 2<sup>n</sup> possible orderings to find the provably minimum total weighted waiting time.
         </div>
+        <div class="card-footer">Provably optimal. Always.</div>
       </div>
     </div>
+    <p class="caption" style="margin-top:24px;">Being fast and being optimal are not the same thing.</p>
   </div>
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System</span>
+    <span class="slide-counter">10 / 15</span>
+  </div>
+</section>
 
-  <!-- ══ Slide 9 — Dijkstra's Result ════════════════════════════════ -->
-  <div class="slide" id="s9">
-    <h2 class="slide-title">Dijkstra's — Mina to Jamarat</h2>
-    <img src="../output/fig3_dijkstra_steps.png" class="img-full" alt="Dijkstra 3-panel step-by-step">
-    <div class="result-label">
-      Path: Mina → Jamarat &nbsp;|&nbsp; Physical distance: 1.5 km &nbsp;|&nbsp; Congestion-weighted cost: 2.85
+<!-- ============================================================
+     SLIDE 11 — Comparison Figure
+     ============================================================ -->
+<section class="slide" id="s11">
+  <div class="accent-line"></div>
+  <div class="slide-content" style="align-items:center;">
+    <div class="slide-title">Greedy vs Dynamic Programming — Side by Side</div>
+    <div class="fig-panel fig-panel-wide" style="width:100%;">
+      <img src="../output/fig4_schedule_comparison.png" alt="Scheduling comparison: FCFS, Greedy, and DP Gantt charts">
     </div>
+    <p class="caption">Three orderings. Three very different total weighted waiting times.</p>
   </div>
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System</span>
+    <span class="slide-counter">11 / 15</span>
+  </div>
+</section>
 
-  <!-- ══ Slide 10 — Scheduling Problem ══════════════════════════════ -->
-  <div class="slide" id="s10">
-    <h2 class="slide-title">Scheduling 10 Pilgrim Groups</h2>
-    <div class="two-col">
-      <div class="col">
-        <ul class="bullets" style="font-size:21px; margin-top:6px;">
-          <li>10 groups must transit Mina–Jamarat one at a time</li>
-          <li>Each group has: <strong>size</strong>, <strong>urgency (1–5)</strong>, <strong>processing time (hrs)</strong></li>
-          <li>Urgency 5 = elderly, medical emergency, critical</li>
-          <li>High-urgency groups with LONG times create the counterexample</li>
-        </ul>
-      </div>
-      <div class="col">
-        <div class="sched-goal">
-          Objective: minimise total weighted wait<br><br>
-          <code style="font-size:20px;">TW = &Sigma;( urgency<sub>i</sub> &times; wait<sub>i</sub> )</code>
-        </div>
-        <div class="sched-box" style="margin-top:14px; font-size:20px;">
-          Three strategies compared:<br>
-          <strong>FCFS</strong> &nbsp;→&nbsp; <strong>Greedy (urgency-first)</strong>
-          &nbsp;→&nbsp; <strong>DP (bitmask, optimal)</strong>
-        </div>
-      </div>
+<!-- ============================================================
+     SLIDE 12 — The Lesson
+     ============================================================ -->
+<section class="slide" id="s12">
+  <div class="accent-line"></div>
+  <div class="slide-content" style="align-items:center; text-align:center;">
+    <div class="slide-title" style="align-self:center;">The Speed&ndash;Optimality Tradeoff</div>
+    <div class="focal-panel">
+      <div class="cost-line">FCFS &nbsp;&mdash;&nbsp; 174.0</div>
+      <div class="cost-line">Greedy &nbsp;&mdash;&nbsp; 103.1</div>
+      <div class="cost-line dp">DP &nbsp;&mdash;&nbsp; 89.8 &nbsp;(optimal)</div>
+      <div class="key-finding">Greedy is 14.8% off the true optimum.</div>
     </div>
+    <p class="subtext">This single number captures the heart of Algorithm Design and Analysis. Faster algorithms make trade-offs. Knowing exactly where they fail — and by how much — is the difference between an engineer and a coder.</p>
   </div>
-
-  <!-- ══ Slide 11 — Greedy vs DP ═════════════════════════════════════ -->
-  <div class="slide" id="s11">
-    <h2 class="slide-title">FCFS vs Greedy vs DP — Comparison</h2>
-    <img src="../output/fig4_schedule_comparison.png" class="img-full" alt="Schedule comparison — Gantt charts and cost bar">
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System</span>
+    <span class="slide-counter">12 / 15</span>
   </div>
+</section>
 
-  <!-- ══ Slide 12 — Key Insight ══════════════════════════════════════ -->
-  <div class="slide" id="s12">
-    <h2 class="slide-title">The Key Lesson</h2>
-    <div class="highlight-box">
-      <div class="result-row r-fcfs">
-        <span class="r-lbl">FCFS — arrival order</span>
-        <span class="r-val">174.0</span>
-      </div>
-      <div class="result-row r-greedy">
-        <span class="r-lbl">Greedy — urgency-first</span>
-        <span class="r-val">103.1 &nbsp;<small style="font-size:16px;color:#718096;font-weight:400;">−40.7% vs FCFS</small></span>
-      </div>
-      <div class="result-row r-dp">
-        <span class="r-lbl">DP — bitmask (optimal)</span>
-        <span class="r-val">89.8 &nbsp;<small style="font-size:16px;color:#718096;font-weight:400;">−12.9% vs Greedy</small></span>
-      </div>
+<!-- ============================================================
+     SLIDE 13 — Dashboard
+     ============================================================ -->
+<section class="slide" id="s13">
+  <div class="accent-line"></div>
+  <div class="slide-content" style="align-items:center;">
+    <div class="slide-title">The Complete System</div>
+    <div class="fig-panel fig-panel-wide" style="width:100%;">
+      <img src="../output/fig5_dashboard.png" alt="Project summary dashboard — all five algorithms">
     </div>
-    <div class="key-lesson">
-      Greedy is fast — <code>O(n log n)</code> — but <strong>14.8% worse than optimal</strong>.&nbsp;
-      DP is slower — <code>O(n &times; 2ⁿ)</code> — but always finds the true minimum.
-      This is the fundamental trade-off of algorithm design:
-      <em>speed vs. optimality. There is no free lunch.</em>
-    </div>
+    <p class="caption">A unified view of all five algorithmic components across three phases.</p>
   </div>
-
-  <!-- ══ Slide 13 — Dashboard ════════════════════════════════════════ -->
-  <div class="slide" id="s13">
-    <h2 class="slide-title">Project Summary Dashboard</h2>
-    <img src="../output/fig5_dashboard.png" class="img-full" alt="Full project summary dashboard">
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System</span>
+    <span class="slide-counter">13 / 15</span>
   </div>
+</section>
 
-  <!-- ══ Slide 14 — Thank You ════════════════════════════════════════ -->
-  <div class="slide" id="s14">
-    <div class="center-wrap">
-      <div class="big-emoji">🙏</div>
-      <h1 style="font-size:66px; color:#1a365d; font-weight:800;">Thank You</h1>
-      <p style="font-size:36px; color:#2E86AB; margin-top:16px;">Questions?</p>
-      <div class="meta" style="font-size:17px; margin-top:44px;">
-        Hajj Crowd Management System<br>
-        Algorithm Design &amp; Analysis — Faculty of Engineering, Tanta University
-      </div>
-    </div>
+<!-- ============================================================
+     SLIDE 14 — Closing
+     ============================================================ -->
+<section class="slide" id="s14">
+  <div class="accent-line"></div>
+  <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; text-align:center;">
+    <div class="eyebrow" style="margin-bottom:30px;">In Closing</div>
+    <blockquote class="closing-quote">
+      "Algorithms cannot replace faith. But thoughtful engineering — applied with humility — can protect those who travel in pursuit of it."
+    </blockquote>
+    <p style="font-size:19px; color:var(--text-muted);">Thank you for your attention.</p>
   </div>
-
-</div><!-- /deck -->
-
-<!-- ══ Persistent bottom bar ════════════════════════════════════════ -->
-<div id="bar">
-  <span>Hajj Crowd Management System &nbsp;|&nbsp; Algorithm Design &amp; Analysis &nbsp;|&nbsp; Tanta University</span>
-  <div class="bar-nav">
-    <button class="nav-btn" id="btn-prev">&#9664; Prev</button>
-    <button class="nav-btn" id="btn-next">Next &#9654;</button>
-    <span id="counter">1 / 14</span>
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System</span>
+    <span class="slide-counter">14 / 15</span>
   </div>
-</div>
+</section>
 
+<!-- ============================================================
+     SLIDE 15 — Q&A
+     ============================================================ -->
+<section class="slide" id="s15">
+  <div class="accent-line"></div>
+  <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; text-align:center;">
+    <h1 style="font-size:68px; margin-bottom:18px;">Questions?</h1>
+    <p style="font-size:22px; color:var(--text-muted);">Open for discussion.</p>
+  </div>
+  <div class="bottom-bar">
+    <span class="tagline">Hajj Crowd Management System &nbsp;&middot;&nbsp; Algorithm Design &amp; Analysis</span>
+    <span class="slide-counter">15 / 15</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     NAVIGATION
+     ============================================================ -->
 <script>
-  var slides  = document.querySelectorAll('.slide');
-  var counter = document.getElementById('counter');
-  var cur     = 0;
+(function () {
+  'use strict';
 
-  function goTo(n) {
-    slides[cur].classList.remove('active');
-    cur = ((n % slides.length) + slides.length) % slides.length;
-    slides[cur].classList.add('active');
-    counter.textContent = (cur + 1) + ' / ' + slides.length;
+  var slides   = Array.from(document.querySelectorAll('.slide'));
+  var total    = slides.length;
+  var current  = 0;
+
+  function goTo(index) {
+    if (index < 0 || index >= total || index === current) return;
+    slides[current].classList.remove('active');
+    slides[index].classList.add('active');
+    current = index;
   }
 
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
-      e.preventDefault(); goTo(cur + 1);
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      e.preventDefault(); goTo(cur - 1);
+  document.addEventListener('keydown', function (e) {
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+      case ' ':
+        e.preventDefault();
+        goTo(current + 1);
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+      case 'Backspace':
+        e.preventDefault();
+        goTo(current - 1);
+        break;
+      case 'f':
+      case 'F':
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(function () {});
+        } else {
+          document.exitFullscreen().catch(function () {});
+        }
+        break;
     }
   });
-
-  document.getElementById('btn-next').addEventListener('click', function() { goTo(cur + 1); });
-  document.getElementById('btn-prev').addEventListener('click', function() { goTo(cur - 1); });
+})();
 </script>
+
 </body>
 </html>
